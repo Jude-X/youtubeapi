@@ -32,16 +32,11 @@ model = {
 
 video_model = api_namespace.model('youtubevideo', model)
 
-model_list = {
-    "items": fields.Nested(model)
-}
-
-video_list_model = api_namespace.model('youtubevideos', model_list)
 
 @api_namespace.route("/v1/videos")
 class Videos(Resource):
     @api_namespace.doc('list_videos')
-    @api_namespace.marshal_with(video_list_model)
+    @api_namespace.marshal_with(video_model)
     def get(self):
         '''
         Retrieves all the videos created by admin
@@ -49,7 +44,7 @@ class Videos(Resource):
         videos = YoutubeVideo.objects()
         if not videos:
             abort(404,'No Video in the database')
-        return videos, 200
+        return list(videos), 200
 
 
 @api_namespace.route("/v1/videos/<int:video_id>")
