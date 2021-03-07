@@ -50,6 +50,7 @@ class Videos(Resource):
 @api_namespace.route("/v1/videos/<int:video_id>")
 class Video(Resource):
     @api_namespace.doc('create_video')
+    @api_namespace.expect(video_put_args)
     @api_namespace.marshal_with(video_model)
     def post(self,video_id):
         '''
