@@ -7,12 +7,12 @@ import http.client
 api_namespace = Namespace('api', description='API operations')
 
 
-#Put argument parser
-video_put_args = api_namespace.parser()
+#Post argument parser
+video_post_args = api_namespace.parser()
 
-video_put_args.add_argument("name", type=str, help="Name of Video is required", required=True)
-video_put_args.add_argument("views", type=int, help="Views of Video is required", required=True)
-video_put_args.add_argument("likes", type=int, help="Likes on Video is required",required=True)
+video_post_args.add_argument("name", type=str, help="Name of Video is required", required=True)
+video_post_args.add_argument("views", type=int, help="Views of Video is required", required=True)
+video_post_args.add_argument("likes", type=int, help="Likes on Video is required",required=True)
 
 #Patch argument parser
 video_update_args = api_namespace.parser()
@@ -24,7 +24,7 @@ video_update_args.add_argument("likes", type=int, help="Likes on Video")
 
 #serializer
 model = {
-    'id': fields.String(),
+    'id': fields.Integer(),
     'name': fields.String(),
     'views': fields.Integer(),
     'likes': fields.Integer(),
@@ -50,14 +50,14 @@ class Videos(Resource):
 @api_namespace.route("/v1/videos/<int:video_id>")
 class Video(Resource):
     @api_namespace.doc('create_video')
-    @api_namespace.expect(video_put_args)
+    @api_namespace.expect(video_post_args)
     @api_namespace.marshal_with(video_model)
     def post(self,video_id):
         '''
         Create a new video
         '''
-        args = video_put_args.parse_args()
-        video = YoutubeVideo.objects().first()
+        args = video_post_args.parse_args()
+        video = YoutubeVideo.objects(id=video_id).first()
         if video:
             abort(409, f'Video {video_id} already exists')
             return '', http.client.CONFLICT
@@ -82,22 +82,25 @@ class Video(Resource):
             abort(404, f'Video {video_id} not found')
         return video, http.client.OK
         
-    @api_namespace.doc('put_video')
+    @api_namespace.doc('patch_video')
+    @api_namespace.expect(video_update_args)
     @api_namespace.marshal_with(video_model, code=http.client.OK)    
-    def put(self, video_id):
+    def patch(self, video_id):
         ''''
         Update a video
         '''
-        args = video_put_args.parse_args()
+        args = video_update_args.parse_args()
         
         video = YoutubeVideo.objects(id=video_id).first()
 
         if not video:
             return '', http.client.NOT_FOUND
-
-        video.name = args['name']
-        video.likes = args['likes']
-        video.views = args['views']
+        if 'name' in args:
+            video.name = args['name']
+        if 'likes' in args:
+            video.likes = args['likes']
+        if 'views' in args:
+            video.views = args['views']
 
         video.save()
         

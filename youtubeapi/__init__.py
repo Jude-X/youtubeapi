@@ -9,7 +9,7 @@ def create_app():
     application = Flask(__name__)
     CORS(application)
     application.config.from_object(config.DevelopmentConfig)
-    api = Api(application, version='0.1',title='Youtube Backend Api', description='A CRUD API')
+    api = Api(application, doc='/test', version='0.1',title='Youtube Backend Api', description='A CRUD API')
     from youtubeapi.db import db
     db.init_app(application)
     application.db = db
